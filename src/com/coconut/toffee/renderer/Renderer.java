@@ -29,7 +29,7 @@ public class Renderer {
 	public static void renderRect(Vector position, float width, float height) {
 		RectRenderer rect = new RectRenderer(position, width, height, Renderer.color);
 		rect.frameBuffer = Display.frameBuffer;
-		
+
 		Display.objects.add(rect);
 	}
 
@@ -56,7 +56,7 @@ public class Renderer {
 	public static void renderUIRect(Vector position, float width, float height) {
 		UIRectRenderer rect = new UIRectRenderer(position, width, height, Renderer.color);
 		rect.frameBuffer = Display.frameBuffer;
-		
+
 		Display.objects.add(rect);
 	}
 
@@ -116,4 +116,29 @@ public class Renderer {
 		Display.objects.add(object);
 	}
 
+	public static void renderFont(TTFont font, String text, Vector position, Color outlineColor, float outlineWidth) {
+		if (font == null)
+			return;
+
+		FontRenderer object = new FontRenderer(position, 100, 100, color, outlineColor, outlineWidth, text, font);
+		object.shader = ShaderManager.defaultShader;
+		object.frameBuffer = Display.frameBuffer;
+		object.text = text;
+		Display.objects.add(object);
+	}
+
+	public static void renderFont(TTFont font, String text, Vector position, String align, Color outlineColor,
+			float outlineWidth) {
+		if (font == null)
+			return;
+
+		FontRenderer object = new FontRenderer(new Vector(0, 0), 100, 100, color, outlineColor, outlineWidth, text,
+				font);
+		object.shader = ShaderManager.defaultShader;
+		object.frameBuffer = Display.frameBuffer;
+		object.align = align;
+		object.text = text;
+		object.position = position;
+		Display.objects.add(object);
+	}
 }

@@ -3,6 +3,8 @@ package com.coconut.test;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 
+import org.lwjgl.opengl.GL13;
+
 import com.coconut.toffee.Display;
 import com.coconut.toffee.camera.Camera;
 import com.coconut.toffee.font.TTFont;
@@ -98,21 +100,26 @@ class Workspace implements Scene {
 	public void render() {
 
 		gameFrameBuffer.bind();
-		testShader.bind();
+		ShaderManager.defaultShader.bind();
 		Renderer.setColor(new Color(20, 20, 20));
 		Renderer.renderUIRect(new Vector(0, 0), Display.width, Display.height);
 		Renderer.renderImage(knight, new Vector(-100, 0, 10), 600, 600);
 		Renderer.renderImage(knight, new Vector(200, 100), 600, 600);
 		Renderer.renderImage(knight, new Vector(100, 0, 3), 300, 600);
-		Renderer.setColor(new Color(0, 0, 0, 50));
+		Renderer.setColor(new Color(255, 67, 79, 10));
 		Renderer.renderRect(new Vector(100, 0, 20), 200, 200);
 		gameFrameBuffer.unbind();
 
-		ShaderManager.defaultShader.bind();
-		gameFrameBuffer.render();
 
 		lightFrameBuffer.bind();
+		ShaderManager.defaultShader.bind();
+		Renderer.setColor(new Color(255, 255, 245));
+		Renderer.renderFont(font, "asdf\nqerr w", new Vector(0, 0, 10), new Color(39, 39, 54), 5f);
 		lightFrameBuffer.unbind();
-		lightFrameBuffer.render();
+
+		testShader.bind();
+		testShader.uploadTexture("another", 1);
+		lightFrameBuffer.uploadGlTexture(GL13.GL_TEXTURE1);
+		gameFrameBuffer.render();
 	}
 }

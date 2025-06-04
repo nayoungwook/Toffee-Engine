@@ -1,9 +1,14 @@
 package com.coconut.toffee.font;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -52,36 +57,68 @@ public class TTFont extends Sprite {
 		this.texID = loadTexture(image);
 	}
 
-	public BufferedImage createTextImage(String text, Font font, Color color) {
+	public BufferedImage createTextImage(String text, Font font, Color color, Color outlineColor, float outlineWidth) {
+		String[] lines = text.split("\n");
+
+		// 1. Measure dimensions
 		BufferedImage tempImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2d = tempImage.createGraphics();
+		Graphics2D tempG2d = tempImage.createGraphics();
+		tempG2d.setFont(font);
+		FontMetrics fontMetrics = tempG2d.getFontMetrics();
+		int lineHeight = fontMetrics.getHeight();
+		int ascent = fontMetrics.getAscent();
 
+		int maxLineWidth = 0;
+		for (String line : lines) {
+			int lineWidth = fontMetrics.stringWidth(line);
+			if (lineWidth > maxLineWidth) {
+				maxLineWidth = lineWidth;
+			}
+		}
+		tempG2d.dispose();
+
+		int padding = (int) Math.ceil(outlineWidth);
+		int imageWidth = maxLineWidth + padding * 2;
+		int imageHeight = lineHeight * lines.length + padding * 2;
+
+		this.width = imageWidth;
+		this.height = imageHeight;
+
+		// 2. Create final image
+		BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = image.createGraphics();
+
+		// 3. Anti-aliasing
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2d.setFont(font);
-		FontMetrics fontMetrics = g2d.getFontMetrics();
 
-		int textWidth = fontMetrics.stringWidth(text);
-		int textHeight = fontMetrics.getHeight();
-		this.width = textWidth;
-		this.height = textHeight;
+		// 4. Render each line
+		FontRenderContext frc = g2d.getFontRenderContext();
 
-		textWidth = Math.max(1, textWidth);
-		textHeight = Math.max(1, textHeight);
+		for (int i = 0; i < lines.length; i++) {
+			String line = lines[i];
+			GlyphVector gv = font.createGlyphVector(frc, line);
+			int y = padding + ascent + i * lineHeight;
+			Shape textShape = gv.getOutline(padding, y);
 
-		BufferedImage image = new BufferedImage(textWidth, textHeight, BufferedImage.TYPE_INT_ARGB);
-		g2d = image.createGraphics();
+			// Outline
+			g2d.setStroke(new BasicStroke(outlineWidth));
+			g2d.setColor(outlineColor);
+			g2d.draw(textShape);
 
-		g2d.setColor(color);
-		g2d.setFont(font);
-		g2d.drawString(text, 0, fontMetrics.getAscent());
+			// Fill
+			g2d.setColor(color);
+			g2d.fill(textShape);
+		}
 
 		g2d.dispose();
-
 		return image;
 	}
 
-	public void bakeFont(String text, Color color) {
+	public void bakeFont(String text, Color color, Color outlineColor, float outlineWidth) {
 		BufferedImage image = null;
-		image = createTextImage(text, awtFont, color);
+		image = createTextImage(text, awtFont, color, outlineColor, outlineWidth);
 
 		updateTexture(image);
 	}

@@ -130,7 +130,7 @@ public class Display {
 
 			shader.uploadMat4f("uProjection", Camera.getProjectionMatrix());
 			shader.uploadMat4f("uView", Camera.getViewMatrix());
-			shader.uploadTexture("TEX_SAMPLER", 0);
+			shader.uploadTexture("uTexture", 0);
 
 			objects.get(i).glRender();
 		}

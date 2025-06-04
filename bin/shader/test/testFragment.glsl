@@ -1,6 +1,7 @@
 #version 330 core
 
-uniform sampler2D TEX_SAMPLER;
+uniform sampler2D uTexture;
+uniform sampler2D another;
 
 uniform vec2 uPoint = vec2(0, 0);
 uniform vec2 uDisplaySize;
@@ -21,9 +22,7 @@ vec4 applyLight(vec4 tex, vec3 light, float range) {
 
 void main() {
 	vec2 uv = fTexCoords;
-//	uv *= uv.x;
-	vec4 tex = texture(TEX_SAMPLER, uv);
-//	color = applyLight(tex, vec3(0.6, 0.6, 0.6), 2);
-	tex *= vec4(0.5, 0.2, 0.5, 1);
+	vec4 tex = texture(uTexture, uv) + texture(another, uv);
+
 	color = tex;
 }

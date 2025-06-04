@@ -12,6 +12,8 @@ import com.coconut.toffee.shader.ShaderManager;
 public class FontRenderer extends GameObject {
 
 	protected Color color = null;
+	protected Color outlineColor = new Color(39, 39, 54);
+	protected float outlineWidth = 0f;
 
 	public TTFont font = null;
 	public String text = "";
@@ -19,7 +21,7 @@ public class FontRenderer extends GameObject {
 
 	@Override
 	public void glRender() {
-		font.bakeFont(text, color);
+		font.bakeFont(text, color, outlineColor, outlineWidth);
 		sprite = font;
 		width = font.getWidth();
 		height = font.getHeight();
@@ -48,6 +50,16 @@ public class FontRenderer extends GameObject {
 		super(position, width, height);
 		this.color = color;
 		this.font = font;
+		this.outlineWidth = 0f;
+	}
+
+	public FontRenderer(Vector position, float width, float height, Color color, Color outlineColor, float outlineWidth,
+			String text, TTFont font) {
+		super(position, width, height);
+		this.color = color;
+		this.font = font;
+		this.outlineColor = outlineColor;
+		this.outlineWidth = outlineWidth;
 	}
 
 }

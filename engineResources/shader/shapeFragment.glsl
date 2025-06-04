@@ -1,9 +1,9 @@
 #version 330 core
 
-in vec4 fColor;
+uniform vec4 uColor;
 
 out vec4 color;
 
 void main() {
-	color = fColor;
+	color = vec4(uColor.rgb * uColor.a, uColor.a);
 }

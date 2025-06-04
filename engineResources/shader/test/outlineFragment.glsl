@@ -1,13 +1,13 @@
 #version 330 core
 
-uniform sampler2D TEX_SAMPLER;
+uniform sampler2D uTexture;
 
 in vec2 fTexCoords;
 
 out vec4 color;
 
 void main() {
-	vec4 texColor = texture(TEX_SAMPLER, fTexCoords);
+	vec4 texColor = texture(uTexture, fTexCoords);
 
 	bool drawOutline = false;
 
@@ -15,12 +15,12 @@ void main() {
 
 	float alpha = texColor.a;
 	float left =
-			texture(TEX_SAMPLER, fTexCoords + vec2(-uOutlineThickness, 0)).a;
+			texture(uTexture, fTexCoords + vec2(-uOutlineThickness, 0)).a;
 	float right =
-			texture(TEX_SAMPLER, fTexCoords + vec2(uOutlineThickness, 0)).a;
-	float up = texture(TEX_SAMPLER, fTexCoords + vec2(0, uOutlineThickness)).a;
+			texture(uTexture, fTexCoords + vec2(uOutlineThickness, 0)).a;
+	float up = texture(uTexture, fTexCoords + vec2(0, uOutlineThickness)).a;
 	float down =
-			texture(TEX_SAMPLER, fTexCoords + vec2(0, -uOutlineThickness)).a;
+			texture(uTexture, fTexCoords + vec2(0, -uOutlineThickness)).a;
 
 	drawOutline = (alpha > 0.1)
 			&& (left < 0.1 || right < 0.1 || up < 0.1 || down < 0.1)
