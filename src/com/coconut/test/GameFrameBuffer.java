@@ -4,4 +4,9 @@ import com.coconut.toffee.object.FrameBuffer;
 
 public class GameFrameBuffer extends FrameBuffer {
 
+	@Override
+	public void glRender() {
+		super.glRender();
+	}
+
 }

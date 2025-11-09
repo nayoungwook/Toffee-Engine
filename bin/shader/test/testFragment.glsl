@@ -22,7 +22,7 @@ vec4 applyLight(vec4 tex, vec3 light, float range) {
 
 void main() {
 	vec2 uv = fTexCoords;
-	vec4 tex = texture(uTexture, uv) + texture(another, uv);
+	vec4 tex = texture(another, uv);
 
 	color = tex;
 }

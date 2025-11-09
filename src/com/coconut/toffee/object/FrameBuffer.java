@@ -47,10 +47,21 @@ public class FrameBuffer extends GameObject {
 	private int glTexture = GL30.GL_TEXTURE0;
 
 	public void uploadGlTexture(int glTexture) {
-		updateFramebufferTexture();
 		this.glTexture = glTexture;
+		updateFramebufferTexture();
 		GL30.glActiveTexture(glTexture);
 		GL30.glBindTexture(GL30.GL_TEXTURE_2D, texture);
+	}
+
+	public void copyFramebufferTexture(FrameBuffer frameBuffer) {
+		Renderer.clearFrameBuffer(this.frameBuffer);
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBuffer.frameBuffer);
+
+		backupW = Display.width;
+		backupH = Display.height;
+
+		GL30.glBindTexture(GL30.GL_TEXTURE_2D, texture);
+		GL30.glCopyTexSubImage2D(GL30.GL_TEXTURE_2D, 0, 0, 0, 0, 0, Display.width, Display.height);
 	}
 
 	public void updateFramebufferTexture() {
@@ -62,7 +73,7 @@ public class FrameBuffer extends GameObject {
 
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fbo);
 
-		GL30.glActiveTexture(GL30.GL_TEXTURE0);
+		GL30.glActiveTexture(glTexture);
 		GL30.glBindTexture(GL30.GL_TEXTURE_2D, texture);
 		GL30.glTexImage2D(GL30.GL_TEXTURE_2D, 0, GL13.GL_RGBA, Display.width, Display.height, 0, GL13.GL_RGBA,
 				GL13.GL_UNSIGNED_BYTE, (ByteBuffer) null);
