@@ -132,6 +132,8 @@ public class Display {
 			shader.uploadMat4f("uView", Camera.getViewMatrix());
 			shader.uploadTexture("uTexture", 0);
 
+			if (objects.get(i).sprite != null)
+				objects.get(i).sprite.setAtlasIndex(objects.get(i).getRenderAtlasIndex());
 			objects.get(i).glRender();
 		}
 

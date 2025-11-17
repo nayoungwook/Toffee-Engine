@@ -49,7 +49,10 @@ class Workspace implements Scene {
 		knight = new Sprite("engineResources/img/knight.png");
 		torch = new Sprite("engineResources/img/torch.png");
 		dark = new Sprite("engineResources/img/dark.png");
-		knight.cutImage(0, 0, 16, 16);
+		knight.fetchAtlasData(new Vector(0, 0), new Vector(16, 16));
+		knight.fetchAtlasData(new Vector(16, 0), new Vector(16, 16));
+		knight.fetchAtlasData(new Vector(32, 0), new Vector(16, 16));
+		knight.fetchAtlasData(new Vector(48, 0), new Vector(16, 16));
 
 		font = new TTFont("font/font.ttf", 32f);
 		fontBig = new TTFont("font/font.ttf", 32f * 2);
@@ -96,8 +99,10 @@ class Workspace implements Scene {
 	private void renderFn() {
 		Renderer.setColor(new Color(20, 20, 20));
 		Renderer.renderUIRect(new Vector(0, 0), Display.width, Display.height);
+		knight.setAtlasIndex(1);
 		Renderer.renderImage(knight, new Vector(-100, 0, 10), 600, 600);
 		Renderer.renderImage(knight, new Vector(200, 100), 600, 600);
+		knight.setAtlasIndex(2);
 		Renderer.renderImage(knight, new Vector(100, 0, 3), 300, 600);
 		Renderer.setColor(new Color(255, 67, 79, 10));
 		Renderer.renderRect(new Vector(100, 0, 20), 200, 200);
@@ -110,7 +115,10 @@ class Workspace implements Scene {
 
 		if (Input.keys[KeyEvent.VK_SPACE]) {
 			testShader.bind();
-			renderFn();
+			knight.setAtlasIndex(2);
+			Renderer.renderImage(knight, new Vector(-150, 0, 10), 600, 600);
+			Renderer.renderImage(knight, new Vector(250, 100), 600, 600);
+			Renderer.renderImage(knight, new Vector(110, 0, 3), 300, 600);
 			testShader.unbind();
 		}
 

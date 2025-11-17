@@ -3,6 +3,7 @@ package com.coconut.toffee.sprite;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL13;
@@ -11,6 +12,8 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryUtil;
 
+import com.coconut.toffee.math.Vector;
+
 public class Sprite {
 
 	protected float subXOffset = 0f, subYOffset = 0f;
@@ -18,20 +21,34 @@ public class Sprite {
 
 	protected float[] vertexArray;
 
-	public float getSubXOffset() {
-		return subXOffset;
+	private ArrayList<Vector> subPositionData = new ArrayList<>();
+	private ArrayList<Vector> subSizeData = new ArrayList<>();
+	private int atlasIndex = 0;
+	private int atlasSize = 0;
+
+	public void fetchAtlasData(Vector positionData, Vector sizeData) {
+		this.subPositionData.add(positionData.cloneVector());
+		this.subSizeData.add(sizeData.cloneVector());
+		atlasSize++;
 	}
 
-	public float getSubYOffset() {
-		return subYOffset;
+	public int getAtlasIndex() {
+		return atlasIndex;
 	}
+	
+	public void setAtlasIndex(int atlasIndex) {
+		this.atlasIndex = atlasIndex;
 
-	public float getSubWOffset() {
-		return subWOffset;
-	}
+		if (this.atlasIndex < 0 || this.atlasIndex >= atlasSize) {
+			System.err.println(
+					"Atlas Index : " + atlasIndex + " out of bounds, the maximum size of atlas is : " + atlasSize);
+			return;
+		}
 
-	public float getSubHOffset() {
-		return subHOffset;
+		Vector position = this.subPositionData.get(atlasIndex);
+		Vector size = this.subSizeData.get(atlasIndex);
+
+		this.cutImage(position.getX(), position.getY(), size.getX(), size.getY());
 	}
 
 	protected int[] elementArray = { 2, 1, 0, // Top right triangle
@@ -92,30 +109,7 @@ public class Sprite {
 		GL30.glGenerateMipmap(GL30.GL_TEXTURE_2D);
 
 		STBImage.stbi_image_free(image);
-	}
 
-	public Sprite(String path, float subXOffset, float subYOffset, float subWOffset, float subHOffset) {
-		bindImage(path);
-
-		subXOffset /= originalWidth;
-		subYOffset /= originalHeight;
-		this.subXOffset = subXOffset;
-		this.subYOffset = subYOffset;
-		subWOffset /= originalWidth;
-		subHOffset /= originalHeight;
-		this.subWOffset = subWOffset;
-		this.subHOffset = subHOffset;
-
-		vertexArray = new float[] {
-				// position // color // UV Coordinates
-				0.5f, -0.5f, 0.0f, subXOffset + subWOffset, subYOffset + subHOffset, // Bottom
-				-0.5f, 0.5f, 0.0f, subXOffset, subYOffset, // Top left 1
-				0.5f, 0.5f, 0.0f, subXOffset + subWOffset, subYOffset, // Top right 2
-				-0.5f, -0.5f, 0.0f, subXOffset, subYOffset + subHOffset // Bottom left 3
-		};
-
-		initialize();
-		initializeGlSettings();
 	}
 
 	public Sprite(String path) {
@@ -152,9 +146,8 @@ public class Sprite {
 		};
 
 		FloatBuffer vertexBuffer = MemoryUtil.memAllocFloat(vertexArray.length);
-		vertexBuffer.put(vertexArray).flip(); // 버퍼 준비
+		vertexBuffer.put(vertexArray).flip();
 
-		// GL_DYNAMIC_DRAW로 버퍼 데이터 생성
 		GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vboID);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_DYNAMIC_DRAW);
 	}

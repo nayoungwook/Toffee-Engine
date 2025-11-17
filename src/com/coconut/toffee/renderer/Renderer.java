@@ -76,6 +76,7 @@ public class Renderer {
 		object.frameBuffer = Display.frameBuffer;
 		object.position = position;
 		object.sprite = sprite;
+		object.setRenderAtlasIndex(object.sprite.getAtlasIndex());
 		Display.objects.add(object);
 	}
 
@@ -89,6 +90,7 @@ public class Renderer {
 		object.position = position;
 		object.sprite = sprite;
 		object.rotation = rotation;
+		object.setRenderAtlasIndex(object.sprite.getAtlasIndex());
 		Display.objects.add(object);
 	}
 

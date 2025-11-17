@@ -15,6 +15,15 @@ public class GameObject {
 	public Sprite sprite;
 	public Vector position = new Vector(0, 0);
 	public float rotation = 0f;
+	private int renderAtlasIndex = 0;
+	
+	public int getRenderAtlasIndex() {
+		return renderAtlasIndex;
+	}
+	
+	public void setRenderAtlasIndex(int atlasIndex) {
+		this.renderAtlasIndex = atlasIndex;
+	}
 
 	public float width, height;
 
@@ -43,6 +52,7 @@ public class GameObject {
 	public void render() {
 		this.frameBuffer = Display.frameBuffer;
 		this.shader = ShaderManager.getCurrentShader();
+		this.setRenderAtlasIndex(this.sprite.getAtlasIndex());
 		Display.objects.add(this);
 	}
 
