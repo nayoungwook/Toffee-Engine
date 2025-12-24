@@ -1,5 +1,6 @@
 package com.coconut.toffee;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -10,8 +11,8 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import com.coconut.toffee.camera.Camera;
@@ -43,19 +44,30 @@ public class Display {
 		Camera.adjustProjection(width, height);
 	}
 
+	private void setViewport() {
+		System.out.println("Viewport manipulated.");
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			IntBuffer fbWidth = stack.mallocInt(1);
+			IntBuffer fbHeight = stack.mallocInt(1);
+
+			GLFW.glfwGetFramebufferSize(glfwWindow, fbWidth, fbHeight);
+			GL30.glViewport(0, 0, fbWidth.get(0), fbHeight.get(0));
+		}
+	}
+
 	public void setFullScreen() {
 		long monitor = GLFW.glfwGetPrimaryMonitor();
 		GLFWVidMode vidMode = GLFW.glfwGetVideoMode(monitor);
 		Display.width = vidMode.width();
 		Display.height = vidMode.height();
-		GL20.glViewport(0, 0, width, height);
+		setViewport();
 		GLFW.glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, vidMode.width(), vidMode.height(), vidMode.refreshRate());
 	}
 
 	public void setWindowScreen(int width, int height) {
 		Display.width = width;
 		Display.height = height;
-		GL20.glViewport(0, 0, width, height);
+		setViewport();
 		GLFW.glfwSetWindowMonitor(glfwWindow, 0, 100, 100, width, height, GLFW.GLFW_DONT_CARE);
 	}
 
@@ -65,7 +77,6 @@ public class Display {
 		if (!GLFW.glfwInit()) {
 			throw new IllegalStateException("Unable to initialize GLFW.");
 		}
-
 		GLFW.glfwDefaultWindowHints();
 		GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
 		GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_FALSE);
@@ -86,6 +97,10 @@ public class Display {
 		GLFW.glfwSetMouseButtonCallback(glfwWindow, input.getMouseButtonsCallback());
 		GLFW.glfwSetScrollCallback(glfwWindow, input.getMouseScrollCallback());
 
+		GLFW.glfwSetFramebufferSizeCallback(glfwWindow, (w, width, height) -> {
+			GL30.glViewport(0, 0, width, height);
+		});
+
 		GL.createCapabilities();
 
 		GL30.glEnableVertexAttribArray(0);
@@ -93,6 +108,8 @@ public class Display {
 
 		GL13.glEnable(GL13.GL_BLEND);
 		GL30.glBlendFunc(GL30.GL_ONE, GL30.GL_ONE_MINUS_SRC_ALPHA);
+
+		setViewport();
 	}
 
 	public void init() {

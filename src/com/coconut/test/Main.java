@@ -7,6 +7,7 @@ import com.coconut.toffee.Display;
 import com.coconut.toffee.camera.Camera;
 import com.coconut.toffee.font.TTFont;
 import com.coconut.toffee.input.Input;
+import com.coconut.toffee.math.Mathf;
 import com.coconut.toffee.math.Vector;
 import com.coconut.toffee.renderer.Renderer;
 import com.coconut.toffee.shader.Shader;
@@ -110,8 +111,10 @@ class Workspace implements Scene {
 
 	@Override
 	public void render() {
-
 		renderFn();
+
+		Renderer.setColor(new Color(255, 100, 150));
+		Renderer.renderOval(Mathf.screenToWorld(Input.mousePointer), 30, 30);
 
 		if (Input.keys[KeyEvent.VK_SPACE]) {
 			testShader.bind();
