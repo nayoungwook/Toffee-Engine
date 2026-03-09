@@ -5,6 +5,8 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL30;
 
 import com.coconut.toffee.Display;
+import com.coconut.toffee.camera.Camera;
+import com.coconut.toffee.math.Mathf;
 import com.coconut.toffee.math.Vector;
 import com.coconut.toffee.shader.Shader;
 import com.coconut.toffee.shader.ShaderManager;
@@ -16,11 +18,11 @@ public class GameObject {
 	public Vector position = new Vector(0, 0);
 	public float rotation = 0f;
 	private int renderAtlasIndex = 0;
-	
+
 	public int getRenderAtlasIndex() {
 		return renderAtlasIndex;
 	}
-	
+
 	public void setRenderAtlasIndex(int atlasIndex) {
 		this.renderAtlasIndex = atlasIndex;
 	}
@@ -49,10 +51,40 @@ public class GameObject {
 	protected Matrix4f modelMatrix;
 	protected Vector3f glmAnchor;
 
+	protected boolean isVisible() {
+		float camX = Camera.position.getX();
+		float camY = Camera.position.getY();
+		float camZ = Camera.position.getZ();
+		float camRot = Camera.rotation;
+
+		if(camZ == 0) return false;
+		
+		float halfWidth = Camera.getResolutionX() / 2f / camZ;
+		float halfHeight = Camera.getResolutionY() / 2f / camZ;
+
+		float objX = position.getX();
+		float objY = position.getY();
+
+		float dist = Mathf.getDistance(new Vector(objX, objY), new Vector(camX, camY));
+
+		if (dist < Math.max(halfWidth, halfHeight) * 1.5f) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public void render() {
+		if (this.sprite == null) {
+			System.err.println("GameObject " + this + " no sprite has been assigned.");
+		}
+
+		if (!isVisible())
+			return;
+
 		this.frameBuffer = Display.frameBuffer;
 		this.shader = ShaderManager.getCurrentShader();
-		this.setRenderAtlasIndex(this.sprite.getAtlasIndex());
+		this.sprite.setAtlasIndex(renderAtlasIndex);
 		Display.objects.add(this);
 	}
 
@@ -78,14 +110,13 @@ public class GameObject {
 			return;
 
 		sprite.bind();
-
+		
 		modelMatrix = makeModelMatrix();
 
 		ShaderManager.getCurrentShader().uploadMat4f("uModel", modelMatrix);
 		GL30.glBindVertexArray(sprite.getVaoID());
 
 		GL30.glDrawElements(GL30.GL_TRIANGLES, sprite.getElementArray().length, GL30.GL_UNSIGNED_INT, 0);
-
 	}
 
 }

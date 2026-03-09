@@ -97,10 +97,6 @@ public class Display {
 		GLFW.glfwSetMouseButtonCallback(glfwWindow, input.getMouseButtonsCallback());
 		GLFW.glfwSetScrollCallback(glfwWindow, input.getMouseScrollCallback());
 
-		GLFW.glfwSetFramebufferSizeCallback(glfwWindow, (w, width, height) -> {
-			GL30.glViewport(0, 0, width, height);
-		});
-
 		GL.createCapabilities();
 
 		GL30.glEnableVertexAttribArray(0);
@@ -138,19 +134,31 @@ public class Display {
 			scene.render();
 
 		objects.sort(Comparator.comparingDouble(obj -> obj.position.getZ()));
+		Shader currentShader = null;
+		int frameBufferCache = 0;
 
 		for (int i = 0; i < objects.size(); i++) {
 			Shader shader = objects.get(i).shader;
-			shader.bind();
 
-			GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, objects.get(i).frameBuffer);
+			if (shader != currentShader) {
+				shader.uploadTexture("uTexture", 0);
+				currentShader = shader;
+				currentShader.bind();
+				currentShader.uploadMat4f("uProjection", Camera.getProjectionMatrix());
+				currentShader.uploadMat4f("uView", Camera.getViewMatrix());
+			}
 
-			shader.uploadMat4f("uProjection", Camera.getProjectionMatrix());
-			shader.uploadMat4f("uView", Camera.getViewMatrix());
-			shader.uploadTexture("uTexture", 0);
+			int frameBuffer = objects.get(i).frameBuffer;
+
+			if (frameBuffer != frameBufferCache) {
+				frameBufferCache = frameBuffer;
+				GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBuffer);
+			    GL30.glViewport(0,0,(int)Camera.getResolutionX(),(int)Camera.getResolutionY());
+			}
 
 			if (objects.get(i).sprite != null)
 				objects.get(i).sprite.setAtlasIndex(objects.get(i).getRenderAtlasIndex());
+
 			objects.get(i).glRender();
 		}
 
@@ -161,7 +169,7 @@ public class Display {
 	public void run() {
 		long initialTime = System.nanoTime();
 		final double timeU = 1000000000 / 60;
-		final double timeF = 1000000000 / 60;
+		final double timeF = 1000000000 / 120;
 		double deltaU = 0, deltaF = 0;
 		int frames = 0, ticks = 0;
 		long timer = System.currentTimeMillis();

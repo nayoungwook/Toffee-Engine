@@ -1,15 +1,17 @@
 package com.coconut.test;
 
-import java.awt.Color;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+
+import org.lwjgl.opengl.GL30;
 
 import com.coconut.toffee.Display;
 import com.coconut.toffee.camera.Camera;
-import com.coconut.toffee.font.TTFont;
 import com.coconut.toffee.input.Input;
-import com.coconut.toffee.math.Mathf;
 import com.coconut.toffee.math.Vector;
-import com.coconut.toffee.renderer.Renderer;
+import com.coconut.toffee.object.FrameBuffer;
+import com.coconut.toffee.object.GameObject;
+import com.coconut.toffee.renderer.ScreenQuad;
 import com.coconut.toffee.shader.Shader;
 import com.coconut.toffee.sprite.Sprite;
 import com.coconut.toffee.state.Scene;
@@ -27,39 +29,55 @@ public class Main {
 
 }
 
+class Knight extends GameObject {
+
+	public Knight(Sprite sprite, float x, float y) {
+		super(x, y, 100, 100);
+
+		this.sprite = sprite;
+		this.setRenderAtlasIndex(0);
+	}
+
+}
+
+class Aru extends GameObject {
+
+	public Aru(Vector position) {
+		super(position, 433, 797);
+		this.sprite = Workspace.aruSprite;
+	}
+
+	@Override
+	public void glRender() {
+		super.glRender();
+	}
+
+}
+
 class Workspace implements Scene {
 
-	private TTFont font = null;
-	private TTFont fontBig = null;
-	private Shader testShader = new Shader("engineResources/shader/test/testVertex.glsl",
-			"engineResources/shader/test/testFragment.glsl");
-	private Shader blurShader = new Shader("engineResources/shader/test/testVertex.glsl",
-			"engineResources/shader/test/blur.glsl");
+	public static Sprite aruSprite = null;
 
-	private Sprite dungeon = null;
-	private Sprite knight = null;
-	private Sprite torch = null;
-	private Sprite dark = null;
+	public static final int MS = 60;
 
-	private LightFrameBuffer lightFrameBuffer = null;
-	private GameFrameBuffer gameFrameBuffer = null;
+	public FrameBuffer testFrameBuffer;
+
+	private Shader blendShader;
+	private Shader testShader;
+
+	public ArrayList<Aru> arus = new ArrayList<>();
 
 	@Override
 	public void init() {
-		dungeon = new Sprite("engineResources/img/dungeon.png");
-		knight = new Sprite("engineResources/img/knight.png");
-		torch = new Sprite("engineResources/img/torch.png");
-		dark = new Sprite("engineResources/img/dark.png");
-		knight.fetchAtlasData(new Vector(0, 0), new Vector(16, 16));
-		knight.fetchAtlasData(new Vector(16, 0), new Vector(16, 16));
-		knight.fetchAtlasData(new Vector(32, 0), new Vector(16, 16));
-		knight.fetchAtlasData(new Vector(48, 0), new Vector(16, 16));
+		aruSprite = new Sprite("engineResources/img/aru.png");
 
-		font = new TTFont("font/font.ttf", 32f);
-		fontBig = new TTFont("font/font.ttf", 32f * 2);
+		arus.add(new Aru(new Vector(0, 0)));
+		arus.add(new Aru(new Vector(50, 0)));
+		testFrameBuffer = new FrameBuffer();
 
-		gameFrameBuffer = new GameFrameBuffer();
-		lightFrameBuffer = new LightFrameBuffer();
+		blendShader = new Shader("engineResources/shader/blend.vert", "engineResources/shader/blend.frag");
+		testShader = new Shader("engineResources/shader/blend.vert", "engineResources/shader/test.frag");
+		ScreenQuad.init();
 	}
 
 	private boolean fs = false;
@@ -78,9 +96,9 @@ class Workspace implements Scene {
 			Camera.position.translate(10f, 0);
 
 		if (Input.keys[KeyEvent.VK_Q])
-			Camera.rotation -= 0.05f;
+			Camera.rotation -= 0.1f;
 		if (Input.keys[KeyEvent.VK_E])
-			Camera.rotation += 0.05f;
+			Camera.rotation += 0.1f;
 
 		if (Input.keys[KeyEvent.VK_F]) {
 			if (!fs)
@@ -94,36 +112,23 @@ class Workspace implements Scene {
 		Camera.position.translate(0, 0, Input.scrollYOffset * 0.05f);
 		Input.scrollYOffset = 0;
 
-		timer += 0.02f;
-	}
-
-	private void renderFn() {
-		Renderer.setColor(new Color(20, 20, 20));
-		Renderer.renderUIRect(new Vector(0, 0), Display.width, Display.height);
-		knight.setAtlasIndex(1);
-		Renderer.renderImage(knight, new Vector(-100, 0, 10), 600, 600);
-		Renderer.renderImage(knight, new Vector(200, 100), 600, 600);
-		knight.setAtlasIndex(2);
-		Renderer.renderImage(knight, new Vector(100, 0, 3), 300, 600);
-		Renderer.setColor(new Color(255, 67, 79, 10));
-		Renderer.renderRect(new Vector(100, 0, 20), 200, 200);
 	}
 
 	@Override
 	public void render() {
-		renderFn();
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, testFrameBuffer.getFBO());
+		testShader.bind();
 
-		Renderer.setColor(new Color(255, 100, 150));
-		Renderer.renderOval(Mathf.screenToWorld(Input.mousePointer), 30, 30);
+		// frame buffer 에 그리기 때문에 true
+		ScreenQuad.render(true);
 
-		if (Input.keys[KeyEvent.VK_SPACE]) {
-			testShader.bind();
-			knight.setAtlasIndex(2);
-			Renderer.renderImage(knight, new Vector(-150, 0, 10), 600, 600);
-			Renderer.renderImage(knight, new Vector(250, 100), 600, 600);
-			Renderer.renderImage(knight, new Vector(110, 0, 3), 300, 600);
-			testShader.unbind();
-		}
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
 
+		blendShader.bind();
+		testFrameBuffer.bindTexture(0);
+		// 일반 화면 fbo == 0 에 그리기 때문에 false
+		ScreenQuad.render(false);
+		blendShader.unbind();
+//		aruSprite.bind();
 	}
 }

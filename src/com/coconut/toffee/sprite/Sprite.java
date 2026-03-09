@@ -35,9 +35,12 @@ public class Sprite {
 	public int getAtlasIndex() {
 		return atlasIndex;
 	}
-	
+
 	public void setAtlasIndex(int atlasIndex) {
 		this.atlasIndex = atlasIndex;
+
+		if (atlasSize == 0)
+			return;
 
 		if (this.atlasIndex < 0 || this.atlasIndex >= atlasSize) {
 			System.err.println(
@@ -75,6 +78,9 @@ public class Sprite {
 		GL30.glTexParameteri(GL30.GL_TEXTURE_2D, GL30.GL_TEXTURE_WRAP_S, GL30.GL_CLAMP_TO_BORDER);
 		GL30.glTexParameteri(GL30.GL_TEXTURE_2D, GL30.GL_TEXTURE_WRAP_T, GL30.GL_CLAMP_TO_BORDER);
 
+		GL13.glEnable(GL13.GL_BLEND);
+		GL13.glBlendFunc(GL13.GL_SRC_ALPHA, GL13.GL_ONE_MINUS_SRC_ALPHA);
+		
 		GL13.glTexParameteri(GL13.GL_TEXTURE_2D, GL13.GL_TEXTURE_MAG_FILTER, GL13.GL_NEAREST);
 		GL13.glTexParameteri(GL13.GL_TEXTURE_2D, GL13.GL_TEXTURE_MIN_FILTER, GL13.GL_NEAREST);
 	}
@@ -109,7 +115,6 @@ public class Sprite {
 		GL30.glGenerateMipmap(GL30.GL_TEXTURE_2D);
 
 		STBImage.stbi_image_free(image);
-
 	}
 
 	public Sprite(String path) {
@@ -127,7 +132,7 @@ public class Sprite {
 		bindImage(path);
 	}
 
-	public void cutImage(float subXOffset, float subYOffset, float subWOffset, float subHOffset) {
+	private void cutImage(float subXOffset, float subYOffset, float subWOffset, float subHOffset) {
 		subXOffset /= originalWidth;
 		subYOffset /= originalHeight;
 		this.subXOffset = subXOffset;
@@ -229,5 +234,5 @@ public class Sprite {
 		GL30.glActiveTexture(GL30.GL_TEXTURE0);
 		GL30.glBindTexture(GL30.GL_TEXTURE_2D, 0);
 	}
-
+	
 }

@@ -2,108 +2,81 @@ package com.coconut.toffee.object;
 
 import java.nio.ByteBuffer;
 
-import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import com.coconut.toffee.Display;
 import com.coconut.toffee.camera.Camera;
-import com.coconut.toffee.renderer.Renderer;
-import com.coconut.toffee.sprite.Sprite;
 
-public class FrameBuffer extends GameObject {
+public class FrameBuffer {
 
-	private int fbo;
+	private int fbo, rbo;
 	private int texture;
 
+	private float resolutionX, resolutionY;
+
 	public FrameBuffer() {
-		super(0, 0, Camera.getResolutionX(), Camera.getResolutionY());
+		this.resolutionX = Camera.getResolutionX();
+		this.resolutionY = Camera.getResolutionY();
 		initialize();
-		this.position.setZ(100);
+	}
+
+	public FrameBuffer(float width, float height) {
+		this.resolutionX = width;
+		this.resolutionY = height;
+		initialize();
 	}
 
 	private void initialize() {
 		fbo = GL30.glGenFramebuffers();
-
-		texture = GL30.glGenTextures();
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fbo);
-		GL30.glBindTexture(GL30.GL_TEXTURE_2D, texture);
-		GL30.glTexImage2D(GL30.GL_TEXTURE_2D, 0, GL13.GL_RGBA, (int) Camera.getResolutionX(),
-				(int) Camera.getResolutionY(), 0, GL13.GL_RGBA, GL13.GL_UNSIGNED_BYTE, (ByteBuffer) null);
+
+		texture = GL11.glGenTextures();
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, (int) resolutionX, (int) resolutionY, 0, GL11.GL_RGBA,
+				GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
+
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL13.GL_CLAMP_TO_EDGE);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL13.GL_CLAMP_TO_EDGE);
+
+		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, texture, 0);
+
 		GL20.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0);
 
-		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL30.GL_TEXTURE_2D, texture, 0);
+		rbo = GL30.glGenRenderbuffers();
+		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, rbo);
+		GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL30.GL_DEPTH24_STENCIL8, (int) resolutionX,
+				(int) resolutionY);
+		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_STENCIL_ATTACHMENT, GL30.GL_RENDERBUFFER,
+				rbo);
 
-		float[] vertexArray = new float[] { 0.5f, 0.5f, 0.0f, 1, 0 + 1, // Bottom
-				-0.5f, -0.5f, 0.0f, 0, 0, // Top left 1
-				0.5f, -0.5f, 0.0f, 1, 0, // Top right 2
-				-0.5f, 0.5f, 0.0f, 0, 1// Bottom left 3
-		};
-		sprite = new Sprite(texture, vertexArray);
+		if (GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER) != GL30.GL_FRAMEBUFFER_COMPLETE) {
+			throw new RuntimeException("FBO not complete!");
+		}
+
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
 	}
 
-	private int backupW = 0, backupH = 0;
-	private int glTexture = GL30.GL_TEXTURE0;
-
-	public void uploadGlTexture(int glTexture) {
-		this.glTexture = glTexture;
-		updateFramebufferTexture();
-		GL30.glActiveTexture(glTexture);
-		GL30.glBindTexture(GL30.GL_TEXTURE_2D, texture);
+	public void bindTexture(int textureUnit) {
+		GL13.glActiveTexture(GL13.GL_TEXTURE0 + textureUnit);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
 	}
 
-	public void copyFramebufferTexture(FrameBuffer frameBuffer) {
-		Renderer.clearFrameBuffer(this.frameBuffer);
-		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBuffer.frameBuffer);
-
-		backupW = Display.width;
-		backupH = Display.height;
-
-		GL30.glBindTexture(GL30.GL_TEXTURE_2D, texture);
-		GL30.glCopyTexSubImage2D(GL30.GL_TEXTURE_2D, 0, 0, 0, 0, 0, Display.width, Display.height);
-	}
-
-	public void updateFramebufferTexture() {
-		if (backupW == Display.width && backupH == Display.height)
-			return;
-
-		backupW = Display.width;
-		backupH = Display.height;
-
+	public void clear() {
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fbo);
 
-		GL30.glActiveTexture(glTexture);
-		GL30.glBindTexture(GL30.GL_TEXTURE_2D, texture);
-		GL30.glTexImage2D(GL30.GL_TEXTURE_2D, 0, GL13.GL_RGBA, Display.width, Display.height, 0, GL13.GL_RGBA,
-				GL13.GL_UNSIGNED_BYTE, (ByteBuffer) null);
+		GL11.glClearColor(0f, 0f, 0f, 1f);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
-		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL30.GL_TEXTURE_2D, texture, 0);
-	}
-
-	@Override
-	public void glRender() {
-		if (sprite == null)
-			return;
-
-		this.updateFramebufferTexture();
-
-		this.sprite.bind();
-
-		modelMatrix = makeModelMatrix();
-
-		shader.uploadMat4f("uProjection", Camera.getProjectionMatrix());
-		shader.uploadMat4f("uView", new Matrix4f().identity());
-		shader.uploadMat4f("uModel", modelMatrix);
-
-		GL30.glBindVertexArray(sprite.getVaoID());
-
-		GL30.glDrawElements(GL30.GL_TRIANGLES, sprite.getElementArray().length, GL30.GL_UNSIGNED_INT, 0);
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
 	}
 
 	public void bind() {
 		Display.frameBuffer = fbo;
-		Renderer.clearFrameBuffer(Display.frameBuffer);
 	}
 
 	public void unbind() {
@@ -118,4 +91,8 @@ public class FrameBuffer extends GameObject {
 		return fbo;
 	}
 
+	public void dispose() {
+		GL30.glDeleteFramebuffers(fbo);
+		GL11.glDeleteTextures(texture);
+	}
 }
