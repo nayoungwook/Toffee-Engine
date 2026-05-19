@@ -1,5 +1,6 @@
 package com.coconut.test;
 
+import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
@@ -11,8 +12,10 @@ import com.coconut.toffee.input.Input;
 import com.coconut.toffee.math.Vector;
 import com.coconut.toffee.object.FrameBuffer;
 import com.coconut.toffee.object.GameObject;
+import com.coconut.toffee.renderer.Renderer;
 import com.coconut.toffee.renderer.ScreenQuad;
 import com.coconut.toffee.shader.Shader;
+import com.coconut.toffee.shader.ShaderManager;
 import com.coconut.toffee.sprite.Sprite;
 import com.coconut.toffee.state.Scene;
 import com.coconut.toffee.state.SceneManager;
@@ -73,7 +76,7 @@ class Workspace implements Scene {
 
 		arus.add(new Aru(new Vector(0, 0)));
 		arus.add(new Aru(new Vector(50, 0)));
-		testFrameBuffer = new FrameBuffer();
+		testFrameBuffer = new FrameBuffer(20, 10);
 
 		blendShader = new Shader("engineResources/shader/blend.vert", "engineResources/shader/blend.frag");
 		testShader = new Shader("engineResources/shader/blend.vert", "engineResources/shader/test.frag");
@@ -117,18 +120,15 @@ class Workspace implements Scene {
 	@Override
 	public void render() {
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, testFrameBuffer.getFBO());
-		testShader.bind();
 
-		// frame buffer 에 그리기 때문에 true
-		ScreenQuad.render(true);
+		ShaderManager.defaultShader.bind();
+		Renderer.renderUIImage(aruSprite, new Vector(0, 0), 100, 100);
+		
+		Renderer.setColor(Color.red);
+		Renderer.renderUIRect(new Vector(30, 30), 50, 50);
 
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
-
-		blendShader.bind();
 		testFrameBuffer.bindTexture(0);
-		// 일반 화면 fbo == 0 에 그리기 때문에 false
-		ScreenQuad.render(false);
-		blendShader.unbind();
-//		aruSprite.bind();
+		ScreenQuad.render(null);
 	}
 }

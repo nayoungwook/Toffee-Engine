@@ -18,7 +18,8 @@ public class GameObject {
 	public Vector position = new Vector(0, 0);
 	public float rotation = 0f;
 	private int renderAtlasIndex = 0;
-
+	protected boolean isUI = false;
+	
 	public int getRenderAtlasIndex() {
 		return renderAtlasIndex;
 	}
@@ -36,6 +37,8 @@ public class GameObject {
 
 	public int frameBuffer = 0;
 
+	protected boolean isVisible = false;
+
 	public GameObject(Vector position, float width, float height) {
 		this.position = position;
 		this.width = width;
@@ -51,14 +54,14 @@ public class GameObject {
 	protected Matrix4f modelMatrix;
 	protected Vector3f glmAnchor;
 
-	protected boolean isVisible() {
+	protected boolean checkVisible() {
 		float camX = Camera.position.getX();
 		float camY = Camera.position.getY();
 		float camZ = Camera.position.getZ();
-		float camRot = Camera.rotation;
 
-		if(camZ == 0) return false;
-		
+		if (camZ == 0)
+			return false;
+
 		float halfWidth = Camera.getResolutionX() / 2f / camZ;
 		float halfHeight = Camera.getResolutionY() / 2f / camZ;
 
@@ -79,7 +82,8 @@ public class GameObject {
 			System.err.println("GameObject " + this + " no sprite has been assigned.");
 		}
 
-		if (!isVisible())
+		isVisible = checkVisible();
+		if (!isVisible)
 			return;
 
 		this.frameBuffer = Display.frameBuffer;
@@ -104,13 +108,21 @@ public class GameObject {
 		modelMatrix.scale(width * (this.flipX ? -1 : 1), height * (this.flipY ? -1 : 1), 1);
 		return modelMatrix;
 	}
+	
+	public boolean isUI() {
+		return isUI;
+	}
 
+	public void setIsUI(boolean isUI) {
+		this.isUI = isUI;
+	}
+	
 	public void glRender() {
 		if (sprite == null)
 			return;
 
 		sprite.bind();
-		
+
 		modelMatrix = makeModelMatrix();
 
 		ShaderManager.getCurrentShader().uploadMat4f("uModel", modelMatrix);

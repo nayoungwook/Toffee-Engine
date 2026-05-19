@@ -29,6 +29,7 @@ public class Renderer {
 	public static void renderRect(Vector position, float width, float height) {
 		RectRenderer rect = new RectRenderer(position, width, height, Renderer.color);
 		rect.frameBuffer = Display.frameBuffer;
+		rect.shader = ShaderManager.shapeShader;
 
 		Display.objects.add(rect);
 	}
@@ -36,6 +37,7 @@ public class Renderer {
 	public static void renderRect(Vector position, float width, float height, float rotation) {
 		RectRenderer rect = new RectRenderer(position, width, height, Renderer.color);
 		rect.rotation = rotation;
+		rect.shader = ShaderManager.shapeShader;
 		rect.frameBuffer = Display.frameBuffer;
 		Display.objects.add(rect);
 	}
@@ -43,28 +45,16 @@ public class Renderer {
 	public static void renderOval(Vector position, float width, float height) {
 		OvalRenderer oval = new OvalRenderer(position, width, height, Renderer.color);
 		oval.frameBuffer = Display.frameBuffer;
+		oval.shader = ShaderManager.shapeShader;
 		Display.objects.add(oval);
 	}
 
 	public static void renderOval(Vector position, float width, float height, float rotation) {
 		OvalRenderer oval = new OvalRenderer(position, width, height, Renderer.color);
 		oval.rotation = rotation;
+		oval.shader = ShaderManager.shapeShader;
 		oval.frameBuffer = Display.frameBuffer;
 		Display.objects.add(oval);
-	}
-
-	public static void renderUIRect(Vector position, float width, float height) {
-		UIRectRenderer rect = new UIRectRenderer(position, width, height, Renderer.color);
-		rect.frameBuffer = Display.frameBuffer;
-
-		Display.objects.add(rect);
-	}
-
-	public static void renderUIRect(Vector position, float width, float height, float rotation) {
-		UIRectRenderer rect = new UIRectRenderer(position, width, height, Renderer.color);
-		rect.rotation = rotation;
-		rect.frameBuffer = Display.frameBuffer;
-		Display.objects.add(rect);
 	}
 
 	public static void renderImage(Sprite sprite, Vector position, float width, float height) {
@@ -99,7 +89,7 @@ public class Renderer {
 			return;
 
 		FontRenderer object = new FontRenderer(position, 100, 100, color, text, font);
-		object.shader = ShaderManager.defaultShader;
+		object.shader = ShaderManager.getCurrentShader();
 		object.frameBuffer = Display.frameBuffer;
 		object.text = text;
 		Display.objects.add(object);
@@ -110,7 +100,7 @@ public class Renderer {
 			return;
 
 		FontRenderer object = new FontRenderer(new Vector(0, 0), 100, 100, color, text, font);
-		object.shader = ShaderManager.defaultShader;
+		object.shader = ShaderManager.getCurrentShader();
 		object.frameBuffer = Display.frameBuffer;
 		object.align = align;
 		object.text = text;
@@ -123,9 +113,9 @@ public class Renderer {
 			return;
 
 		FontRenderer object = new FontRenderer(position, 100, 100, color, outlineColor, outlineWidth, text, font);
-		object.shader = ShaderManager.defaultShader;
 		object.frameBuffer = Display.frameBuffer;
 		object.text = text;
+		object.shader = ShaderManager.getCurrentShader();
 		Display.objects.add(object);
 	}
 
@@ -136,11 +126,140 @@ public class Renderer {
 
 		FontRenderer object = new FontRenderer(new Vector(0, 0), 100, 100, color, outlineColor, outlineWidth, text,
 				font);
-		object.shader = ShaderManager.defaultShader;
+		object.shader = ShaderManager.getCurrentShader();
 		object.frameBuffer = Display.frameBuffer;
 		object.align = align;
 		object.text = text;
 		object.position = position;
+		Display.objects.add(object);
+	}
+
+	// UI RENDERER
+
+	public static void renderUIRect(Vector position, float width, float height) {
+		RectRenderer rect = new RectRenderer(position, width, height, Renderer.color);
+		rect.frameBuffer = Display.frameBuffer;
+		rect.shader = ShaderManager.shapeShader;
+		rect.setIsUI(true);
+
+		Display.objects.add(rect);
+	}
+
+	public static void renderUIRect(Vector position, float width, float height, float rotation) {
+		RectRenderer rect = new RectRenderer(position, width, height, Renderer.color);
+		rect.shader = ShaderManager.shapeShader;
+		rect.rotation = rotation;
+		rect.frameBuffer = Display.frameBuffer;
+		rect.setIsUI(true);
+
+		Display.objects.add(rect);
+	}
+
+	public static void renderUIOval(Vector position, float width, float height) {
+		OvalRenderer oval = new OvalRenderer(position, width, height, Renderer.color);
+		oval.frameBuffer = Display.frameBuffer;
+		oval.shader = ShaderManager.shapeShader;
+		oval.setIsUI(true);
+
+		Display.objects.add(oval);
+	}
+
+	public static void renderUIOval(Vector position, float width, float height, float rotation) {
+		OvalRenderer oval = new OvalRenderer(position, width, height, Renderer.color);
+		oval.rotation = rotation;
+		oval.shader = ShaderManager.shapeShader;
+		oval.frameBuffer = Display.frameBuffer;
+		oval.setIsUI(true);
+
+		Display.objects.add(oval);
+	}
+
+	public static void renderUIImage(Sprite sprite, Vector position, float width, float height) {
+		if (sprite == null)
+			return;
+
+		GameObject object = new GameObject(0, 0, width, height);
+		object.shader = ShaderManager.getCurrentShader();
+		object.frameBuffer = Display.frameBuffer;
+		object.position = position;
+		object.sprite = sprite;
+		object.setRenderAtlasIndex(object.sprite.getAtlasIndex());
+		object.setIsUI(true);
+
+		Display.objects.add(object);
+	}
+
+	public static void renderUIImage(Sprite sprite, Vector position, float width, float height, float rotation) {
+		if (sprite == null)
+			return;
+
+		GameObject object = new GameObject(0, 0, width, height);
+		object.shader = ShaderManager.getCurrentShader();
+		object.frameBuffer = Display.frameBuffer;
+		object.position = position;
+		object.sprite = sprite;
+		object.rotation = rotation;
+		object.setRenderAtlasIndex(object.sprite.getAtlasIndex());
+		object.setIsUI(true);
+
+		Display.objects.add(object);
+	}
+
+	public static void renderUIFont(TTFont font, String text, Vector position) {
+		if (font == null)
+			return;
+
+		FontRenderer object = new FontRenderer(position, 100, 100, color, text, font);
+		object.shader = ShaderManager.getCurrentShader();
+		object.frameBuffer = Display.frameBuffer;
+		object.text = text;
+		object.setIsUI(true);
+
+		Display.objects.add(object);
+	}
+
+	public static void renderUIFont(TTFont font, String text, Vector position, String align) {
+		if (font == null)
+			return;
+
+		FontRenderer object = new FontRenderer(new Vector(0, 0), 100, 100, color, text, font);
+		object.shader = ShaderManager.getCurrentShader();
+		object.frameBuffer = Display.frameBuffer;
+		object.align = align;
+		object.text = text;
+		object.position = position;
+		object.setIsUI(true);
+
+		Display.objects.add(object);
+	}
+
+	public static void renderUIFont(TTFont font, String text, Vector position, Color outlineColor, float outlineWidth) {
+		if (font == null)
+			return;
+
+		FontRenderer object = new FontRenderer(position, 100, 100, color, outlineColor, outlineWidth, text, font);
+		object.shader = ShaderManager.getCurrentShader();
+		object.frameBuffer = Display.frameBuffer;
+		object.text = text;
+		object.setIsUI(true);
+
+		Display.objects.add(object);
+	}
+
+	public static void renderUIFont(TTFont font, String text, Vector position, String align, Color outlineColor,
+			float outlineWidth) {
+		if (font == null)
+			return;
+
+		FontRenderer object = new FontRenderer(new Vector(0, 0), 100, 100, color, outlineColor, outlineWidth, text,
+				font);
+		object.shader = ShaderManager.getCurrentShader();
+		object.frameBuffer = Display.frameBuffer;
+		object.align = align;
+		object.text = text;
+		object.position = position;
+		object.setIsUI(true);
+
 		Display.objects.add(object);
 	}
 }

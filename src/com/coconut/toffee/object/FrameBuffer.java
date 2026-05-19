@@ -17,6 +17,14 @@ public class FrameBuffer {
 
 	private float resolutionX, resolutionY;
 
+	public float getResolutionX() {
+		return resolutionX;
+	}
+
+	public float getResolutionY() {
+		return resolutionY;
+	}
+
 	public FrameBuffer() {
 		this.resolutionX = Camera.getResolutionX();
 		this.resolutionY = Camera.getResolutionY();

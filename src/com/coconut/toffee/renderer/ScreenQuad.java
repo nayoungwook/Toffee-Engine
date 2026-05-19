@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import com.coconut.toffee.Display;
-import com.coconut.toffee.camera.Camera;
+import com.coconut.toffee.object.FrameBuffer;
 
 public class ScreenQuad {
 
@@ -29,9 +29,9 @@ public class ScreenQuad {
 		GL20.glEnableVertexAttribArray(1);
 	}
 
-	public static void render(boolean isFrameBuffer) {
-		if (isFrameBuffer) {
-			GL30.glViewport(0, 0, (int) Camera.getResolutionX(), (int) Camera.getResolutionY());
+	public static void render(FrameBuffer frameBuffer) {
+		if (frameBuffer != null) {
+			GL30.glViewport(0, 0, (int) frameBuffer.getResolutionX(), (int) frameBuffer.getResolutionY());
 		} else {
 			GL30.glViewport(0, 0, Display.width, Display.height);
 		}

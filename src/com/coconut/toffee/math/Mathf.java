@@ -25,6 +25,10 @@ public class Mathf {
 		return (float) Math.sin(getAngle(position, position2)) * moveSpeed;
 	}
 
+	public static float dot(Vector v1, Vector v2) {
+		return v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ();
+	}
+
 	public static Vector worldToScreen(Vector worldPos) {
 		// 1. MVP 변환
 		Vector4f clipSpacePos = new Vector4f(worldPos.getX(), worldPos.getY(), worldPos.getZ(), 1.0f)

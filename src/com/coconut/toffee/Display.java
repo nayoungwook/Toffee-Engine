@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.joml.Matrix4f;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -145,7 +146,12 @@ public class Display {
 				currentShader = shader;
 				currentShader.bind();
 				currentShader.uploadMat4f("uProjection", Camera.getProjectionMatrix());
-				currentShader.uploadMat4f("uView", Camera.getViewMatrix());
+
+				if (!objects.get(i).isUI()) {
+					currentShader.uploadMat4f("uView", Camera.getViewMatrix());
+				} else {
+					currentShader.uploadMat4f("uView", new Matrix4f().identity());
+				}
 			}
 
 			int frameBuffer = objects.get(i).frameBuffer;
@@ -153,7 +159,7 @@ public class Display {
 			if (frameBuffer != frameBufferCache) {
 				frameBufferCache = frameBuffer;
 				GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBuffer);
-			    GL30.glViewport(0,0,(int)Camera.getResolutionX(),(int)Camera.getResolutionY());
+				GL30.glViewport(0, 0, (int) Camera.getResolutionX(), (int) Camera.getResolutionY());
 			}
 
 			if (objects.get(i).sprite != null)
@@ -165,6 +171,9 @@ public class Display {
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
 		GLFW.glfwSwapBuffers(glfwWindow);
 	}
+
+	public static int frameRate = 0;
+	public static int tickRate = 0;
 
 	public void run() {
 		long initialTime = System.nanoTime();
@@ -195,6 +204,8 @@ public class Display {
 
 			if (System.currentTimeMillis() - timer > 1000) {
 				System.out.println(String.format("UPS : %s, FPS : %s", ticks, frames));
+				frameRate = frames;
+				tickRate = ticks;
 				frames = 0;
 				ticks = 0;
 				timer += 1000;

@@ -21,6 +21,14 @@ public class Vector {
 		return result;
 	}
 
+	public Vector normalized() {
+		float length = (float) Math.sqrt(x * x + y * y + z * z);
+		if (length == 0)
+			return new Vector(0, 0, 0);
+
+		return new Vector(x / length, y / length, z / length);
+	}
+
 	public float getX() {
 		return x;
 	}
